@@ -53,24 +53,24 @@ class AvtobusTizimi {
     avtobuslarRoyxati() {
         console.log("\n🚌 BARCHA AVTOBUSLAR:");
         console.log("=".repeat(50)); // NUQTA VERGULDAN OLDIN BO'SHLIQ OLIB TASHLANDI
-        
+
         this.avtobuslar.forEach(avtobus => {
             const malumot = avtobus.malumotOlish();
             console.log(`ID: ${malumot.id} | ${malumot.yoonalish} | ${malumot.bandOrinlar}/${malumot.jamiOrinlar} band`);
         });
-        
+
         return this.avtobuslar;
     }
 
     // Yo'nalish bo'yicha qidirish
     yoonalishBoyichaQidirish(yoonalishQismi) {
-        const topilganAvtobuslar = this.avtobuslar.filter(avtobus => 
+        const topilganAvtobuslar = this.avtobuslar.filter(avtobus =>
             avtobus.yoonalish.toLowerCase().includes(yoonalishQismi.toLowerCase())
         );
-        
+
         console.log(`\n🔍 "${yoonalishQismi}" bo'yicha topilgan avtobuslar:`);
         console.log("-".repeat(50));
-        
+
         if (topilganAvtobuslar.length === 0) {
             console.log("Hech narsa topilmadi 😔");
         } else {
@@ -79,49 +79,49 @@ class AvtobusTizimi {
                 console.log(`ID: ${malumot.id} | ${malumot.yoonalish} | ${malumot.bosOrinlar} ta bo'sh orin`);
             });
         }
-        
+
         return topilganAvtobuslar;
     }
 
     // Orin band qilish
     orinBandQilish(avtobusId) {
         const avtobus = this.avtobuslar.find(a => a.id === avtobusId);
-        
+
         if (!avtobus) {
             console.log(`❌ ID: ${avtobusId} bo'yicha avtobus topilmadi`);
             return false;
         }
 
         const muvaffaqiyatli = avtobus.orinBandQilish();
-        
+
         if (muvaffaqiyatli) {
             const malumot = avtobus.malumotOlish();
             console.log(`✅ Avtobus ${avtobusId} da orin band qilindi. ${malumot.bosOrinlar} ta orin bo'sh qoldi`);
         } else {
             console.log(`❌ Avtobus ${avtobusId} da barcha orinlar band`);
         }
-        
+
         return muvaffaqiyatli;
     }
 
     // Band orinni bo'shatish (XATO TUZATILDI)
     orinBoshatish(avtobusId) {
         const avtobus = this.avtobuslar.find(a => a.id === avtobusId);
-        
+
         if (!avtobus) {
             console.log(`❌ ID: ${avtobusId} bo'yicha avtobus topilmadi`);
             return false;
         }
 
         const muvaffaqiyatli = avtobus.orinBoshatish(); // METOD NOMI O'ZGARTIRILDI
-        
+
         if (muvaffaqiyatli) {
             const malumot = avtobus.malumotOlish();
             console.log(`✅ Avtobus ${avtobusId} dan band orin bo'shatildi. ${malumot.bosOrinlar} ta orin bo'sh`);
         } else {
             console.log(`❌ Avtobus ${avtobusId} da band orin yo'q`);
         }
-        
+
         return muvaffaqiyatli;
     }
 }
@@ -313,13 +313,13 @@ class Dokon {
     // Barcha mahsulotlarni ko'rsatadi
     mahsulotlarniKorsatish() {
         console.log("\n🛍️  BARCHA MAHSULOTLAR:");
-        console.log("=" .repeat(70));
-        
+        console.log("=".repeat(70));
+
         this.mahsulotlar.forEach(mahsulot => {
             const malumot = mahsulot.malumotOlish();
             console.log(`ID: ${malumot.id} | ${malumot.nomi} | ${malumot.narxi} so'm | ${malumot.ombor} ta | ${malumot.holati}`);
         });
-        
+
         return this.mahsulotlar;
     }
 
@@ -340,13 +340,13 @@ class Dokon {
     // Barcha buyurtmalarni ko'rsatadi
     buyurtmalarniKorsatish() {
         console.log("\n📦 BARCHA BUYURTMALAR:");
-        console.log("=" .repeat(60));
-        
+        console.log("=".repeat(60));
+
         if (this.buyurtmalar.length === 0) {
             console.log("Hali buyurtmalar mavjud emas");
             return;
         }
-        
+
         this.buyurtmalar.forEach(buyurtma => {
             const malumot = buyurtma.malumotOlish();
             console.log(`Buyurtma #${malumot.id} | ${malumot.holati} | ${malumot.elementlarSoni} ta mahsulot | ${malumot.jamiSumma} so'm | ${malumot.vaqt}`);
