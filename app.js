@@ -1,419 +1,421 @@
-// Avtobus klassi - har bir avtobus haqida ma'lumot saqlaydi
-class Avtobus {
-    constructor(id, yoonalish, orinlarSoni) {
+class Bus {
+    constructor(id, route, seats) {
         this.id = id;
-        this.yoonalish = yoonalish;
-        this.orinlarSoni = orinlarSoni;
-        this.bandOrinlar = 0;
+        this.route = route;
+        this.seats = seats;
+        this.reservedSeats = 0;
+        this.passengers = []; // Qo'shimcha: yo'lovchilar ro'yxati
     }
 
-    // Avtobus haqida to'liq ma'lumot beradi
-    malumotOlish() {
+    getDetails() {
         return {
             id: this.id,
-            yoonalish: this.yoonalish,
-            jamiOrinlar: this.orinlarSoni,
-            bandOrinlar: this.bandOrinlar,
-            bosOrinlar: this.orinlarSoni - this.bandOrinlar
+            route: this.route,
+            totalSeats: this.seats,
+            reservedSeats: this.reservedSeats,
+            availableSeats: this.seats - this.reservedSeats,
+            passengers: this.passengers
         };
     }
 
-    // Orin band qilish
-    orinBandQilish() {
-        if (this.bandOrinlar < this.orinlarSoni) {
-            this.bandOrinlar++;
-            return true; // Muvaffaqiyatli
-        }
-        return false; // Barcha orinlar band
-    }
-
-    // Band qilingan orinni bo'shatish (XATO TUZATILDI)
-    orinBoshatish() {
-        if (this.bandOrinlar > 0) {
-            this.bandOrinlar--;
-            return true; // Muvaffaqiyatli
-        }
-        return false; // Band orin yo'q
-    }
-}
-
-// Avtobus tizimi - barcha avtobuslarni boshqaradi
-class AvtobusTizimi {
-    constructor() {
-        this.avtobuslar = [];
-    }
-
-    // Yangi avtobus qo'shish
-    avtobusQoshish(avtobus) {
-        this.avtobuslar.push(avtobus);
-        console.log(`✅ Yangi avtobus qo'shildi: ${avtobus.yoonalish} (ID: ${avtobus.id})`);
-    }
-
-    // Barcha avtobuslarni ko'rsatish (XATO TUZATILDI)
-    avtobuslarRoyxati() {
-        console.log("\n🚌 BARCHA AVTOBUSLAR:");
-        console.log("=".repeat(50)); // NUQTA VERGULDAN OLDIN BO'SHLIQ OLIB TASHLANDI
-
-        this.avtobuslar.forEach(avtobus => {
-            const malumot = avtobus.malumotOlish();
-            console.log(`ID: ${malumot.id} | ${malumot.yoonalish} | ${malumot.bandOrinlar}/${malumot.jamiOrinlar} band`);
-        });
-
-        return this.avtobuslar;
-    }
-
-    // Yo'nalish bo'yicha qidirish
-    yoonalishBoyichaQidirish(yoonalishQismi) {
-        const topilganAvtobuslar = this.avtobuslar.filter(avtobus =>
-            avtobus.yoonalish.toLowerCase().includes(yoonalishQismi.toLowerCase())
-        );
-
-        console.log(`\n🔍 "${yoonalishQismi}" bo'yicha topilgan avtobuslar:`);
-        console.log("-".repeat(50));
-
-        if (topilganAvtobuslar.length === 0) {
-            console.log("Hech narsa topilmadi 😔");
-        } else {
-            topilganAvtobuslar.forEach(avtobus => {
-                const malumot = avtobus.malumotOlish();
-                console.log(`ID: ${malumot.id} | ${malumot.yoonalish} | ${malumot.bosOrinlar} ta bo'sh orin`);
+    reserveSeat(passengerName = "Anonim") {
+        if (this.reservedSeats < this.seats) {
+            this.reservedSeats++;
+            this.passengers.push({
+                name: passengerName,
+                seatNumber: this.reservedSeats,
+                reservationTime: new Date()
             });
+            return { success: true, seatNumber: this.reservedSeats };
         }
-
-        return topilganAvtobuslar;
+        return { success: false, message: "Barcha o'rindon band" };
     }
 
-    // Orin band qilish
-    orinBandQilish(avtobusId) {
-        const avtobus = this.avtobuslar.find(a => a.id === avtobusId);
-
-        if (!avtobus) {
-            console.log(`❌ ID: ${avtobusId} bo'yicha avtobus topilmadi`);
-            return false;
+    cancelReservation(seatNumber = null) {
+        if (this.reservedSeats > 0) {
+            if (seatNumber) {
+                // Belgilangan o'rinni bo'shatish
+                const index = this.passengers.findIndex(p => p.seatNumber === seatNumber);
+                if (index !== -1) {
+                    this.passengers.splice(index, 1);
+                    this.reservedSeats--;
+                    return { success: true, message: `${seatNumber}-o'rin bo'shatildi` };
+                }
+                return { success: false, message: "O'rin topilmadi" };
+            } else {
+                // Oxirgi o'rinni bo'shatish
+                this.passengers.pop();
+                this.reservedSeats--;
+                return { success: true, message: "Oxirgi o'rin bo'shatildi" };
+            }
         }
-
-        const muvaffaqiyatli = avtobus.orinBandQilish();
-
-        if (muvaffaqiyatli) {
-            const malumot = avtobus.malumotOlish();
-            console.log(`✅ Avtobus ${avtobusId} da orin band qilindi. ${malumot.bosOrinlar} ta orin bo'sh qoldi`);
-        } else {
-            console.log(`❌ Avtobus ${avtobusId} da barcha orinlar band`);
-        }
-
-        return muvaffaqiyatli;
+        return { success: false, message: "Band qilingan o'rin yo'q" };
     }
 
-    // Band orinni bo'shatish (XATO TUZATILDI)
-    orinBoshatish(avtobusId) {
-        const avtobus = this.avtobuslar.find(a => a.id === avtobusId);
-
-        if (!avtobus) {
-            console.log(`❌ ID: ${avtobusId} bo'yicha avtobus topilmadi`);
-            return false;
-        }
-
-        const muvaffaqiyatli = avtobus.orinBoshatish(); // METOD NOMI O'ZGARTIRILDI
-
-        if (muvaffaqiyatli) {
-            const malumot = avtobus.malumotOlish();
-            console.log(`✅ Avtobus ${avtobusId} dan band orin bo'shatildi. ${malumot.bosOrinlar} ta orin bo'sh`);
-        } else {
-            console.log(`❌ Avtobus ${avtobusId} da band orin yo'q`);
-        }
-
-        return muvaffaqiyatli;
+    getAvailableSeats() {
+        return this.seats - this.reservedSeats;
     }
 }
 
-// ==================== FOYDALANISH MISOLI ====================
+class BusSystem {
+    constructor() {
+        this.buses = [];
+        this.nextBusId = 1;
+    }
 
-// Avtobus tizimini yaratamiz
-const tizim = new AvtobusTizimi();
+    addBus(route, seats) {
+        const bus = new Bus(this.nextBusId++, route, seats);
+        this.buses.push(bus);
+        return bus;
+    }
+
+    listBuses() {
+        return this.buses.map(bus => bus.getDetails());
+    }
+
+    searchByRoute(route) {
+        return this.buses
+            .filter(bus => bus.route.toLowerCase().includes(route.toLowerCase()))
+            .map(bus => bus.getDetails());
+    }
+
+    findBusById(busId) {
+        return this.buses.find(bus => bus.id === busId);
+    }
+
+    reserveSeat(busId, passengerName = "Anonim") {
+        const bus = this.findBusById(busId);
+        if (bus) {
+            return bus.reserveSeat(passengerName);
+        }
+        return { success: false, message: "Avtobus topilmadi" };
+    }
+
+    cancelReservation(busId, seatNumber = null) {
+        const bus = this.findBusById(busId);
+        if (bus) {
+            return bus.cancelReservation(seatNumber);
+        }
+        return { success: false, message: "Avtobus topilmadi" };
+    }
+
+    getBusStatus(busId) {
+        const bus = this.findBusById(busId);
+        if (bus) {
+            return bus.getDetails();
+        }
+        return null;
+    }
+
+    // Qo'shimcha: barcha avtobuslarning holatini ko'rsatish
+    getAllBusesStatus() {
+        return this.buses.map(bus => ({
+            id: bus.id,
+            route: bus.route,
+            availableSeats: bus.getAvailableSeats(),
+            totalSeats: bus.seats
+        }));
+    }
+}
+
+// Tizimni sinab ko'rish
+const busSystem = new BusSystem();
 
 // Avtobuslar qo'shamiz
-tizim.avtobusQoshish(new Avtobus(1, "Toshkent - Samarqand", 40));
-tizim.avtobusQoshish(new Avtobus(2, "Toshkent - Buxoro", 35));
-tizim.avtobusQoshish(new Avtobus(3, "Samarqand - Buxoro", 30));
-tizim.avtobusQoshish(new Avtobus(4, "Toshkent - Andijon", 45));
-tizim.avtobusQoshish(new Avtobus(5, "Buxoro - Urganch", 25));
+busSystem.addBus("Toshkent - Samarqand", 40);
+busSystem.addBus("Toshkent - Buxoro", 35);
+busSystem.addBus("Samarqand - Buxoro", 30);
 
-console.log("\n");
+console.log("=== Barcha Avtobuslar ===");
+console.log(busSystem.listBuses());
 
-// Barcha avtobuslarni ko'rsatamiz
-tizim.avtobuslarRoyxati();
+console.log("\n=== Toshkent yo'nalishi bo'yicha qidiruv ===");
+console.log(busSystem.searchByRoute("Toshkent"));
 
-console.log("\n");
+console.log("\n=== O'rin band qilish ===");
+console.log(busSystem.reserveSeat(1, "Ali Valiyev"));
+console.log(busSystem.reserveSeat(1, "Gulnora Xasanova"));
 
-// Yo'nalish bo'yicha qidiramiz
-tizim.yoonalishBoyichaQidirish("Toshkent");
-tizim.yoonalishBoyichaQidirish("Buxoro");
+console.log("\n=== 1-Avtobus holati ===");
+console.log(busSystem.getBusStatus(1));
 
-console.log("\n");
+console.log("\n=== O'rin bo'shatish ===");
+console.log(busSystem.cancelReservation(1, 1));
 
-// Orin band qilamiz
-tizim.orinBandQilish(1); // Toshkent - Samarqand
-tizim.orinBandQilish(1);
-tizim.orinBandQilish(2); // Toshkent - Buxoro
-tizim.orinBandQilish(5); // Buxoro - Urganch
+console.log("\n=== Yangi holat ===");
+console.log(busSystem.getBusStatus(1));
 
-console.log("\n");
+console.log("\n=== Barcha avtobuslarning umumiy holati ===");
+console.log(busSystem.getAllBusesStatus());
 
-// Band orinni bo'shatamiz (XATO TUZATILDI)
-tizim.orinBoshatish(1);
-
-console.log("\n");
-
-// Yangi holatni ko'ramiz
-tizim.avtobuslarRoyxati();
-
-console.log("\n");
-
-// Mavjud bo'lmagan avtobusga urinib ko'ramiz
-tizim.orinBandQilish(99);
-tizim.orinBoshatish(99); // METOD NOMI O'ZGARTIRILDI
-
-// Mahsulot klassi - har bir mahsulot haqida ma'lumot saqlaydi
-class Mahsulot {
-    constructor(id, nomi, narxi, ombor) {
+class Product {
+    constructor(id, name, price, stock) {
         this.id = id;
-        this.nomi = nomi;
-        this.narxi = narxi;
-        this.ombor = ombor;
+        this.name = name;
+        this.price = price;
+        this.stock = stock;
     }
 
-    // Mahsulot haqida to'liq ma'lumot beradi
-    malumotOlish() {
+    getDetails() {
         return {
             id: this.id,
-            nomi: this.nomi,
-            narxi: this.narxi,
-            ombor: this.ombor,
-            holati: this.ombor > 0 ? "🟢 Omborda bor" : "🔴 Omborda yo'q"
+            name: this.name,
+            price: this.price,
+            stock: this.stock,
+            inStock: this.stock > 0
         };
     }
 
-    // Ombordagi miqdorni yangilaydi
-    omborYangila(soni) {
-        const yangiMiqdor = this.ombor + soni;
-        if (yangiMiqdor >= 0) {
-            this.ombor = yangiMiqdor;
-            console.log(`✅ ${this.nomi} ombori yangilandi: ${this.ombor} ta`);
-            return true;
-        } else {
-            console.log(`❌ Noto'g'ri miqdor. Omborda faqat ${this.ombor} ta bor`);
-            return false;
+    updateStock(quantity) {
+        if (this.stock + quantity >= 0) {
+            const oldStock = this.stock;
+            this.stock += quantity;
+            return { 
+                success: true, 
+                oldStock, 
+                newStock: this.stock,
+                message: `Zaxira yangilandi: ${oldStock} → ${this.stock}`
+            };
         }
-    }
-}
-
-// Buyurtma elementi klassi - har bir buyurtmadagi mahsulotni ifodalaydi
-class BuyurtmaElementi {
-    constructor(mahsulot, soni) {
-        this.mahsulot = mahsulot;
-        this.soni = soni;
-    }
-
-    // Shu mahsulot uchun jami summani hisoblaydi
-    summaHisobla() {
-        return this.mahsulot.narxi * this.soni;
-    }
-
-    // Element haqida ma'lumot beradi
-    malumotOlish() {
-        const jamiSumma = this.summaHisobla();
-        return {
-            mahsulot: this.mahsulot.nomi,
-            soni: this.soni,
-            narxi: this.mahsulot.narxi,
-            jamiSumma: jamiSumma
+        return { 
+            success: false, 
+            message: "Zaxira yetarli emas" 
         };
     }
 }
 
-// Buyurtma klassi - bitta buyurtmani boshqaradi
-class Buyurtma {
+class OrderItem {
+    constructor(product, quantity) {
+        this.product = product;
+        this.quantity = quantity;
+        this.unitPrice = product.price;
+        this.totalPrice = this.calculatePrice();
+    }
+
+    calculatePrice() {
+        return this.product.price * this.quantity;
+    }
+
+    getDetails() {
+        return {
+            product: this.product.name,
+            quantity: this.quantity,
+            unitPrice: this.unitPrice,
+            totalPrice: this.totalPrice
+        };
+    }
+}
+
+class Order {
     constructor(id) {
         this.id = id;
-        this.elementlar = [];
-        this.holati = "Yangi";
-        this.yaratilganVaqt = new Date();
+        this.items = [];
+        this.orderDate = new Date();
+        this.status = "created"; // created, processing, completed, cancelled
+        this.totalAmount = 0;
     }
 
-    // Buyurtmaga yangi mahsulot qo'shadi
-    mahsulotQoshish(element) {
-        // Mahsulot omborda bormi tekshiramiz
-        if (element.mahsulot.ombor >= element.soni) {
-            this.elementlar.push(element);
-            console.log(`✅ ${element.soni} ta ${element.mahsulot.nomi} buyurtmaga qo'shildi`);
+    addItem(orderItem) {
+        this.items.push(orderItem);
+        this.totalAmount = this.calculateTotal();
+        return this.items.length;
+    }
+
+    calculateTotal() {
+        return this.items.reduce((total, item) => total + item.calculatePrice(), 0);
+    }
+
+    getOrderDetails() {
+        return {
+            orderId: this.id,
+            orderDate: this.orderDate,
+            status: this.status,
+            totalAmount: this.totalAmount,
+            items: this.items.map(item => item.getDetails()),
+            itemCount: this.items.length
+        };
+    }
+
+    updateStatus(newStatus) {
+        const validStatuses = ["created", "processing", "completed", "cancelled"];
+        if (validStatuses.includes(newStatus)) {
+            this.status = newStatus;
             return true;
-        } else {
-            console.log(`❌ ${element.mahsulot.nomi} dan omborda faqat ${element.mahsulot.ombor} ta bor`);
-            return false;
         }
+        return false;
+    }
+}
+
+class Shop {
+    constructor() {
+        this.products = [];
+        this.orders = [];
+        this.nextProductId = 1;
+        this.nextOrderId = 1;
     }
 
-    // Buyurtma uchun jami summani hisoblaydi
-    jamiSummaHisobla() {
-        let jami = 0;
-        this.elementlar.forEach(element => {
-            jami += element.summaHisobla();
-        });
-        return jami;
+    addProduct(name, price, stock) {
+        const product = new Product(this.nextProductId++, name, price, stock);
+        this.products.push(product);
+        return product;
     }
 
-    // Buyurtmani tasdiqlaydi va ombordan chiqaradi
-    tasdiqlash() {
-        // Avval barcha mahsulotlar omborda bormi tekshiramiz
-        for (const element of this.elementlar) {
-            if (element.mahsulot.ombor < element.soni) {
-                console.log(`❌ ${element.mahsulot.nomi} yetarli emas. Buyurtma bekor qilindi`);
-                this.holati = "Bekor qilindi";
-                return false;
+    listProducts() {
+        return this.products.map(product => product.getDetails());
+    }
+
+    findProductById(productId) {
+        return this.products.find(p => p.id === productId);
+    }
+
+    findProductByName(name) {
+        return this.products.filter(p => 
+            p.name.toLowerCase().includes(name.toLowerCase())
+        );
+    }
+
+    createOrder() {
+        const order = new Order(this.nextOrderId++);
+        this.orders.push(order);
+        return order;
+    }
+
+    addProductToOrder(order, productId, quantity) {
+        const product = this.findProductById(productId);
+        if (!product) {
+            return { success: false, message: "Mahsulot topilmadi" };
+        }
+
+        if (product.stock < quantity) {
+            return { 
+                success: false, 
+                message: `Zaxira yetarli emas. Mavjud: ${product.stock}, Talab: ${quantity}` 
+            };
+        }
+
+        const orderItem = new OrderItem(product, quantity);
+        order.addItem(orderItem);
+        
+        return { 
+            success: true, 
+            message: "Mahsulot buyurtmaga qo'shildi",
+            item: orderItem.getDetails()
+        };
+    }
+
+    processOrder(order) {
+        // Zaxirani tekshirish
+        for (const item of order.items) {
+            if (item.product.stock < item.quantity) {
+                return { 
+                    success: false, 
+                    message: `${item.product.name} uchun zaxira yetarli emas` 
+                };
             }
         }
 
-        // Barcha mahsulotlarni ombordan chiqaramiz
-        this.elementlar.forEach(element => {
-            element.mahsulot.omborYangila(-element.soni);
-        });
-
-        this.holati = "Tasdiqlandi";
-        console.log(`✅ Buyurtma ${this.id} muvaffaqiyatli tasdiqlandi!`);
-        return true;
-    }
-
-    // Buyurtma haqida ma'lumot beradi
-    malumotOlish() {
-        const jamiSumma = this.jamiSummaHisobla();
-        return {
-            id: this.id,
-            holati: this.holati,
-            elementlarSoni: this.elementlar.length,
-            jamiSumma: jamiSumma,
-            vaqt: this.yaratilganVaqt.toLocaleString()
-        };
-    }
-}
-
-// Do'kon klassi - barcha mahsulot va buyurtmalarni boshqaradi
-class Dokon {
-    constructor() {
-        this.mahsulotlar = [];
-        this.buyurtmalar = [];
-        this.keyingiBuyurtmaId = 1;
-    }
-
-    // Yangi mahsulot qo'shadi
-    mahsulotQoshish(mahsulot) {
-        this.mahsulotlar.push(mahsulot);
-        console.log(`✅ Yangi mahsulot qo'shildi: ${mahsulot.nomi}`);
-    }
-
-    // Barcha mahsulotlarni ko'rsatadi
-    mahsulotlarniKorsatish() {
-        console.log("\n🛍️  BARCHA MAHSULOTLAR:");
-        console.log("=".repeat(70));
-
-        this.mahsulotlar.forEach(mahsulot => {
-            const malumot = mahsulot.malumotOlish();
-            console.log(`ID: ${malumot.id} | ${malumot.nomi} | ${malumot.narxi} so'm | ${malumot.ombor} ta | ${malumot.holati}`);
-        });
-
-        return this.mahsulotlar;
-    }
-
-    // ID bo'yicha mahsulot qidiradi
-    mahsulotTopish(id) {
-        return this.mahsulotlar.find(m => m.id === id);
-    }
-
-    // Yangi buyurtma yaratadi
-    yangiBuyurtma() {
-        const yangiId = this.keyingiBuyurtmaId++;
-        const yangiBuyurtma = new Buyurtma(yangiId);
-        this.buyurtmalar.push(yangiBuyurtma);
-        console.log(`🆕 Yangi buyurtma yaratildi: #${yangiId}`);
-        return yangiBuyurtma;
-    }
-
-    // Barcha buyurtmalarni ko'rsatadi
-    buyurtmalarniKorsatish() {
-        console.log("\n📦 BARCHA BUYURTMALAR:");
-        console.log("=".repeat(60));
-
-        if (this.buyurtmalar.length === 0) {
-            console.log("Hali buyurtmalar mavjud emas");
-            return;
+        // Zaxirani yangilash
+        for (const item of order.items) {
+            item.product.updateStock(-item.quantity);
         }
 
-        this.buyurtmalar.forEach(buyurtma => {
-            const malumot = buyurtma.malumotOlish();
-            console.log(`Buyurtma #${malumot.id} | ${malumot.holati} | ${malumot.elementlarSoni} ta mahsulot | ${malumot.jamiSumma} so'm | ${malumot.vaqt}`);
-        });
+        order.updateStatus("completed");
+        return { 
+            success: true, 
+            message: "Buyurtma muvaffaqiyatli bajarildi",
+            order: order.getOrderDetails()
+        };
+    }
+
+    cancelOrder(order) {
+        if (order.status === "completed") {
+            // Buyurtma bekor qilinsa, zaxirani qaytarish
+            for (const item of order.items) {
+                item.product.updateStock(item.quantity);
+            }
+        }
+        order.updateStatus("cancelled");
+        return { success: true, message: "Buyurtma bekor qilindi" };
+    }
+
+    getOrderById(orderId) {
+        return this.orders.find(o => o.id === orderId);
+    }
+
+    getAllOrders() {
+        return this.orders.map(order => order.getOrderDetails());
+    }
+
+    getInventoryStatus() {
+        return this.products.map(product => ({
+            id: product.id,
+            name: product.name,
+            stock: product.stock,
+            status: product.stock > 0 ? "Mavjud" : "Tugagan",
+            needsRestock: product.stock < 5
+        }));
     }
 }
 
-// ==================== FOYDALANISH MISOLI ====================
-
-// Do'kon yaratamiz
-const meningDokonim = new Dokon();
+// Tizimni sinab ko'rish
+const shop = new Shop();
 
 // Mahsulotlar qo'shamiz
-meningDokonim.mahsulotQoshish(new Mahsulot(1, "Smartfon", 2500000, 10));
-meningDokonim.mahsulotQoshish(new Mahsulot(2, "Noutbuk", 7500000, 5));
-meningDokonim.mahsulotQoshish(new Mahsulot(3, "Telefon qoplamasi", 50000, 50));
-meningDokonim.mahsulotQoshish(new Mahsulot(4, "Simsiz quloqchinlar", 350000, 15));
-meningDokonim.mahsulotQoshish(new Mahsulot(5, "Aqlli soat", 1200000, 8));
+shop.addProduct("Laptop", 1000, 10);
+shop.addProduct("Smartphone", 500, 20);
+shop.addProduct("Tablet", 300, 15);
+shop.addProduct("Printer", 200, 8);
 
-console.log("\n");
+console.log("=== Barcha Mahsulotlar ===");
+console.log(shop.listProducts());
 
-// Barcha mahsulotlarni ko'rsatamiz
-meningDokonim.mahsulotlarniKorsatish();
+console.log("\n=== Yangi Buyurtma Yaratish ===");
+const order1 = shop.createOrder();
 
-console.log("\n");
+console.log("=== Buyurtmaga Mahsulot Qo'shish ===");
+console.log(shop.addProductToOrder(order1, 1, 2)); // Laptop
+console.log(shop.addProductToOrder(order1, 2, 1)); // Smartphone
+console.log(shop.addProductToOrder(order1, 3, 3)); // Tablet
 
-// Yangi buyurtma yaratamiz
-const buyurtma1 = meningDokonim.yangiBuyurtma();
+console.log("\n=== Buyurtma Tafsilotlari ===");
+console.log(order1.getOrderDetails());
 
-// Buyurtmaga mahsulotlar qo'shamiz
-const smartphone = meningDokonim.mahsulotTopish(1);
-const qopqon = meningDokonim.mahsulotTopish(3);
-const quloqchin = meningDokonim.mahsulotTopish(4);
+console.log("\n=== Buyurtmani Qayta Ishlash ===");
+console.log(shop.processOrder(order1));
 
-if (smartphone && qopqon && quloqchin) {
-    buyurtma1.mahsulotQoshish(new BuyurtmaElementi(smartphone, 2));
-    buyurtma1.mahsulotQoshish(new BuyurtmaElementi(qopqon, 3));
-    buyurtma1.mahsulotQoshish(new BuyurtmaElementi(quloqchin, 1));
+console.log("\n=== Yangi Zaxira Holati ===");
+console.log(shop.getInventoryStatus());
+
+console.log("\n=== Yangi Buyurtma (Zaxira Yetmasligi) ===");
+const order2 = shop.createOrder();
+console.log(shop.addProductToOrder(order2, 1, 15)); // Juda ko'p laptop
+
+console.log("\n=== Barcha Buyurtmalar ===");
+console.log(shop.getAllOrders());
+
+console.log("\n=== Mahsulot Qidirish ===");
+console.log(shop.findProductByName("phone"));
+
+// Agar siz ikkala tizimni birlashtirmoqchi bo'lsangiz
+class CombinedSystem {
+    constructor() {
+        this.busSystem = new BusSystem();
+        this.shopSystem = new Shop();
+    }
+
+    // Bu yerda ikkala tizim o'rtasida integratsiya metodlari yozishingiz mumkin
+    // Masalan: avtobus chiptasini buyurtma qilganda do'kondan mahsulot ham buyurtma qilish
 }
 
-console.log("\n");
+// Misol: Integratsiya
+const combinedSystem = new CombinedSystem();
 
-// Buyurtmani tasdiqlaymiz
-buyurtma1.tasdiqlash();
+// Avtobus qo'shish
+combinedSystem.busSystem.addBus("Toshkent - Samarqand", 40);
 
-console.log("\n");
+// Mahsulot qo'shish
+combinedSystem.shopSystem.addProduct("Sayohat sumkasi", 50, 100);
 
-// Yangi holatda mahsulotlarni ko'rsatamiz
-meningDokonim.mahsulotlarniKorsatish();
-
-console.log("\n");
-
-// Barcha buyurtmalarni ko'rsatamiz
-meningDokonim.buyurtmalarniKorsatish();
-
-console.log("\n");
-
-// Ikkinchi buyurtma yaratamiz (yetarli mahsulot bo'lmagan holat)
-const buyurtma2 = meningDokonim.yangiBuyurtma();
-const noutbuk = meningDokonim.mahsulotTopish(2);
-
-if (noutbuk) {
-    buyurtma2.mahsulotQoshish(new BuyurtmaElementi(noutbuk, 10)); // Omborda faqat 5 ta bor
-}
-
-console.log("\n");
-
-// Buyurtma holatini ko'rsatamiz
-console.log("Buyurtma 1 holati:", buyurtma1.malumotOlish());
-console.log("Buyurtma 2 holati:", buyurtma2.malumotOlish());
+console.log("=== Kombinatsiya Tizimi ===");
+console.log("Avtobuslar:", combinedSystem.busSystem.listBuses());
+console.log("Mahsulotlar:", combinedSystem.shopSystem.listProducts());
